@@ -1,33 +1,45 @@
 import telebot
 from secrets import TOKEN
+from scrapper import Scrapper
 
 bot = telebot.TeleBot(TOKEN)
+user = Scrapper()
 
 
-@bot.message_handler(commands=['help', 'set_exp', 'set_spec', 'search', 'erase'])
+@bot.message_handler(commands=['erase', 'help', 'set_exp', 'set_spec', 'search'])
 def get_command_response(message):
 	if message.text == '/help':
 		commands_describ = [
-			'Here is the list of the commands:\n',
-			'/help -- show this tab\n',
-			'/search -- start job searching\n',
-			'/set_exp -- set your job experiecne\n',
-			'/set_spec -- set your specialization\n',
-			'/erase -- erase already set peremeters'
+			'Here is the list of the commands:',
+			'/erase -- erase already set peremeters',
+			'/help -- show this tab',
+			'/search -- start job searching',
+			'/set_exp -- set your job experiecne',
+			'/set_spec -- set your specialization'
 		]
-		bot.reply_to(message, ''.join(commands_describ))
+		bot.reply_to(message, '\n'.join(commands_describ))
 
 	if message.text == '/search':
 		bot.reply_to(message, 'searching')
 
 	if message.text == '/set_exp':
-		bot.reply_to(message, 'setting experience')
+		experiences = [
+			'intern',
+			'junior',
+			'middle',
+			'senior',
+			'lead',
+			'no matter'
+		]
+		bot.reply_to(message, f'Choose your experience:\n{", ".join(experiences)}')
 
 	if message.text == '/set_spec':
 		bot.reply_to(message, 'setting specialization')
 
 	if message.text == '/erase':
-		bot.reply_to(message, 'erasing already set paremeters')
+		user.exp = 'no matter'
+		user.specialization = None
+		bot.reply_to(message, 'your experience and specialization have been erased')
 
 
 @bot.message_handler(content_types=['text'])
