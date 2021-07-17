@@ -1,1 +1,1 @@
-TOKEN = 'AAA'
+TOKEN = 'AAAAA'
