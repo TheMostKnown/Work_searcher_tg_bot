@@ -21,26 +21,7 @@ def get_command_response(message):
 		bot.reply_to(message, '\n'.join(commands_describ))
 
 	if message.text == '/search': #add page=0
-		ans =  user.search()
-		if len(ans) == 1:
-			bot.send_message(message.from_user.id, ans[0])
-		else:
-			company_name, vaccancy_name, salary, skills, link = ans
-			listing = [
-				f'{vaccancy_name}',
-				f'company: {company_name}',
-				f'salary: {salary}',
-				f'skills needed: {skills}',
-				f'link: {link}'
-			]
-			bot.send_message(message.from_user.id, '\n\n'.join(listing))
-			bot.send_message(message.from_user.id, 'type "next" to continue searching')
-
-			if message.text.lower() == 'next':
-				bot.register_next_step_handler(message, search_controller);
-			else:
-				bot.send_message(message.from_user.id, 'stopped searching')
-				user.page = 0
+		searcher(message)
 
 	if message.text == '/set_exp':
 		experiences = [
@@ -51,9 +32,9 @@ def get_command_response(message):
 			'lead',
 			'no matter'
 		]
+
 		bot.reply_to(message, f'Choose your experience:\n{", ".join(experiences)}')
 		bot.register_next_step_handler(message, exp_chooser);
-
 
 	if message.text == '/set_spec':
 		bot.reply_to(message, 'Enter your specialization:')
@@ -94,6 +75,34 @@ def exp_chooser(message):
 def spec_chooser(message):
 	user.spec = message.text
 	bot.send_message(message.from_user.id, f'Your specialization set to {user.spec}')
+
+
+def search_controller(message):
+	if message.text.lower() == 'next':
+		searcher(message)
+	else:
+		bot.send_message(message.from_user.id, 'stopped searching')
+		user.page = 0
+
+def searcher(message):
+	ans =  user.search()
+	if len(ans) == 1:
+		bot.send_message(message.from_user.id, ans[0])
+		user.page = 0
+	else:
+		company_name, vaccancy_name, salary, skills, link = ans
+		listing = [
+			f'{vaccancy_name}',
+			f'company: {company_name}',
+			f'salary: {salary}',
+			f'skills needed: {skills}',
+			f'link: {link}'
+		]
+		bot.send_message(message.from_user.id, '\n\n'.join(listing))
+		bot.send_message(message.from_user.id, 'type "next" to continue searching')
+
+		bot.register_next_step_handler(message, search_controller);
+
 
 
 bot.polling(none_stop=True)

@@ -9,6 +9,7 @@ class Scrapper(object):
 		self.spec = None
 		self.page = 0
 		self.cur_vac = 0
+		self.vac_list = []
 	#https://career.habr.com/vacancies?page=2&q=python&qid=4&type=all
 
 	def make_url(self, page):
@@ -57,35 +58,34 @@ class Scrapper(object):
 
 
 	def search(self):
-		vac_list = []
 		if self.page == 0:
-			vac_list = self.page_iteration()
+			self.vac_list = self.page_iteration()
 
-		if self.cur_vac >= len(vac_list):
-			vac_list = self.page_iteration()
+		if self.cur_vac >= len(self.vac_list):
+			self.vac_list = self.page_iteration()
 
 		# Пустой список
-		if not vac_list:
+		if not self.vac_list:
 			return ('No more vaccancies with such parameters',)
 			#return (self.make_url(self.page),) #debug
 
 		vac_block = ''
 
-		company_name = vac_list[self.cur_vac].a.next.next.a.text
-		vaccancy_name = vac_list[self.cur_vac].a.next.next.find_all(class_='vacancy-card__title-link')[0].text
+		company_name = self.vac_list[self.cur_vac].a.next.next.a.text
+		vaccancy_name = self.vac_list[self.cur_vac].a.next.next.find_all(class_='vacancy-card__title-link')[0].text
 		
 		salary = 'Not mentioned'
-		if len(vac_list[self.cur_vac].a.next.next.find_all(class_='basic-salary')) != 0:
-			salary = vac_list[self.cur_vac].a.next.next.find_all(class_='basic-salary')[0].text
+		if len(self.vac_list[self.cur_vac].a.next.next.find_all(class_='basic-salary')) != 0:
+			salary = self.vac_list[self.cur_vac].a.next.next.find_all(class_='basic-salary')[0].text
 		if salary == '':
 			salary = 'Not mentioned'
 
 		skills = ''
-		skill_list =  vac_list[self.cur_vac].a.next.next.find_all(class_='vacancy-card__skills')[0].find_all(class_='preserve-line')
+		skill_list =  self.vac_list[self.cur_vac].a.next.next.find_all(class_='vacancy-card__skills')[0].find_all(class_='preserve-line')
 		for skill in skill_list:
 			skills += skill.text
 
-		link = 'https://career.habr.com' + vac_list[self.cur_vac].a['href']
+		link = 'https://career.habr.com' + self.vac_list[self.cur_vac].a['href']
 		self.cur_vac += 1
 
 		return(company_name, vaccancy_name, salary, skills, link)
