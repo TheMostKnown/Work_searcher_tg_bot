@@ -20,7 +20,7 @@ def get_command_response(message):
 		]
 		bot.reply_to(message, '\n'.join(commands_describ))
 
-	if message.text == '/search':
+	if message.text == '/search': #add page=1
 		bot.reply_to(message, 'searching')
 
 	if message.text == '/set_exp':
