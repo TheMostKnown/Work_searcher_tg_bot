@@ -1,5 +1,5 @@
-from requests_html import HTMLSession
 from bs4 import BeautifulSoup
+import dryscrape # + напомнить о необходимом для устновки
 
 # + добавить исключения
 class Scrapper(object):
@@ -41,53 +41,51 @@ class Scrapper(object):
 	
 	def page_iteration(self):
 		self.page += 1
+		self.cur_vac = 0
 
 		url = self.make_url(self.page)
-		session = HTMLSession()
+		session = dryscrape.Session()
+		session.visit(url)
 
-		r = session.get(url)
-		if r != 200:
-			return []
 
-		r.html.render()
-		soup = BeautifulSoup(r.html.html, 'html.parser')
+		response = session.body() # add errors
+
+		soup = BeautifulSoup(response, 'html.parser')
 		vac_list = soup.find_all(class_='vacancy-card')
 
 		return vac_list
 
 
 	def search(self):
+		vac_list = []
 		if self.page == 0:
-			vac_list = self.search_iteration()
+			vac_list = self.page_iteration()
 
 		if self.cur_vac >= len(vac_list):
 			vac_list = self.page_iteration()
 
 		# Пустой список
 		if not vac_list:
-			return 'No more vaccancies with such parameters'
+			return ('No more vaccancies with such parameters',)
+			#return (self.make_url(self.page),) #debug
+
+		vac_block = ''
 
 		company_name = vac_list[self.cur_vac].a.next.next.a.text
-		vaccancy_name = vac_list[self.cur_vac].a.next.next.a.next.next.next.text
+		vaccancy_name = vac_list[self.cur_vac].a.next.next.find_all(class_='vacancy-card__title-link')[0].text
+		
+		salary = 'Not mentioned'
+		if len(vac_list[self.cur_vac].a.next.next.find_all(class_='basic-salary')) != 0:
+			salary = vac_list[self.cur_vac].a.next.next.find_all(class_='basic-salary')[0].text
+		if salary == '':
+			salary = 'Not mentioned'
+
+		skills = ''
+		skill_list =  vac_list[self.cur_vac].a.next.next.find_all(class_='vacancy-card__skills')[0].find_all(class_='preserve-line')
+		for skill in skill_list:
+			skills += skill.text
 
 		link = 'https://career.habr.com' + vac_list[self.cur_vac].a['href']
 		self.cur_vac += 1
 
-
-
-
-def main():
-	url = 'https://career.habr.com/vacancies?type=all'
-	session = HTMLSession()
-
-	r = session.get(url)
-
-	r.html.render()  # this call executes the js in the page
-	#response = requests.get(url)
-	soup = BeautifulSoup(r.html.html, 'html.parser')
-	vac_list = soup.find_all(class_='vacancy-card')
-	print(vac_list[0].a.next.next.a.next.next.next.text)
-	#print(vac_list[0].a['href'])
-
-if __name__ == "__main__":
-	main()
+		return(company_name, vaccancy_name, salary, skills, link)
